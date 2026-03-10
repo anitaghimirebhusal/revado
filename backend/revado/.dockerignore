@@ -1,0 +1,9 @@
+target/
+*.db
+.idea/
+*.iml
+.mvn/wrapper/maven-wrapper.jar
+node_modules/
+.git/
+.gitignore
+README.md

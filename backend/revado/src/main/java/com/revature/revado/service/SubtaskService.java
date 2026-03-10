@@ -1,73 +1,101 @@
 package com.revature.revado.service;
 
-import com.revature.revado.entity.SubtaskItem;
-import com.revature.revado.entity.TodoItem;
+import com.revature.revado.dto.request.SubtaskRequest;
+import com.revature.revado.dto.response.SubtaskResponse;
 import com.revature.revado.exception.ResourceNotFoundException;
-import com.revature.revado.repository.SubtaskItemRepository;
-import com.revature.revado.repository.TodoItemRepository;
+import com.revature.revado.exception.UnauthorizedException;
+import com.revature.revado.model.Subtask;
+import com.revature.revado.model.Todo;
+import com.revature.revado.repository.SubtaskRepository;
+import com.revature.revado.repository.TodoRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class SubtaskService {
 
-    private final SubtaskItemRepository subtaskItemRepository;
-    private final TodoItemRepository todoItemRepository;
+    private final SubtaskRepository subtaskRepository;
+    private final TodoRepository todoRepository;
 
-    public SubtaskService(SubtaskItemRepository subtaskItemRepository, TodoItemRepository todoItemRepository) {
-        this.subtaskItemRepository = subtaskItemRepository;
-        this.todoItemRepository = todoItemRepository;
+    public List<SubtaskResponse> getSubtasksByTodoId(Long todoId, Long userId) {
+        Todo todoEntity = getTodoAndVerifyOwnership(todoId, userId);
+        return subtaskRepository.findByTodoIdOrderByCreatedAtAsc(todoEntity.getId())
+                .stream()
+                .map(this::mapToSubtaskResponse)
+                .toList();
     }
 
-    public SubtaskItem createSubtask(Long todoId, String title) {
-        TodoItem todo = todoItemRepository.findById(todoId)
-                .orElseThrow(() -> new ResourceNotFoundException("Todo not found with id " + todoId));
+    public SubtaskResponse getSubtaskById(Long todoId, Long subtaskId, Long userId) {
+        getTodoAndVerifyOwnership(todoId, userId);
+        Subtask subtaskEntity = subtaskRepository.findByIdAndTodoId(subtaskId, todoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subtask", "id", subtaskId));
+        return mapToSubtaskResponse(subtaskEntity);
+    }
 
-        SubtaskItem subtask = SubtaskItem.builder()
-                .title(title)
-                .completed(false)
-                .todo(todo)
+    @Transactional
+    public SubtaskResponse createSubtask(Long todoId, SubtaskRequest request, Long userId) {
+        Todo todoEntity = getTodoAndVerifyOwnership(todoId, userId);
+
+        Subtask subtaskEntity = Subtask.builder()
+                .title(request.getTitle())
+                .todo(todoEntity)
                 .build();
 
-        return subtaskItemRepository.save(subtask);
+        subtaskEntity = subtaskRepository.save(subtaskEntity);
+        return mapToSubtaskResponse(subtaskEntity);
     }
 
-    @Transactional(readOnly = true)
-    public List<SubtaskItem> getSubtasksForTodo(Long todoId) {
-        return subtaskItemRepository.findByTodoId(todoId);
+    @Transactional
+    public SubtaskResponse updateSubtask(Long todoId, Long subtaskId, SubtaskRequest request, Long userId) {
+        getTodoAndVerifyOwnership(todoId, userId);
+        Subtask subtaskEntity = subtaskRepository.findByIdAndTodoId(subtaskId, todoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subtask", "id", subtaskId));
+
+        subtaskEntity.setTitle(request.getTitle());
+        subtaskEntity = subtaskRepository.save(subtaskEntity);
+        return mapToSubtaskResponse(subtaskEntity);
     }
 
-    @Transactional(readOnly = true)
-    public SubtaskItem getSubtaskById(Long id) {
-        return subtaskItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Subtask not found with id " + id));
+    @Transactional
+    public SubtaskResponse toggleSubtaskComplete(Long todoId, Long subtaskId, Long userId) {
+        getTodoAndVerifyOwnership(todoId, userId);
+        Subtask subtaskEntity = subtaskRepository.findByIdAndTodoId(subtaskId, todoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subtask", "id", subtaskId));
+
+        subtaskEntity.setCompleted(!subtaskEntity.isCompleted());
+        subtaskEntity = subtaskRepository.save(subtaskEntity);
+        return mapToSubtaskResponse(subtaskEntity);
     }
 
-    public SubtaskItem updateSubtask(Long id, String title, Boolean completed) {
-        SubtaskItem existing = getSubtaskById(id);
-        if (title != null) {
-            existing.setTitle(title);
+    @Transactional
+    public void deleteSubtask(Long todoId, Long subtaskId, Long userId) {
+        getTodoAndVerifyOwnership(todoId, userId);
+        Subtask subtaskEntity = subtaskRepository.findByIdAndTodoId(subtaskId, todoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subtask", "id", subtaskId));
+        subtaskRepository.delete(subtaskEntity);
+    }
+
+    private Todo getTodoAndVerifyOwnership(Long todoId, Long userId) {
+        Todo todoEntity = todoRepository.findById(todoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Todo", "id", todoId));
+        if (!todoEntity.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("You don't have permission to access this todo's subtasks");
         }
-        if (completed != null) {
-            existing.setCompleted(completed);
-        }
-        return subtaskItemRepository.save(existing);
+        return todoEntity;
     }
 
-    public SubtaskItem setSubtaskCompletion(Long id, boolean completed) {
-        SubtaskItem existing = getSubtaskById(id);
-        existing.setCompleted(completed);
-        return subtaskItemRepository.save(existing);
-    }
-
-    public void deleteSubtask(Long id) {
-        if (!subtaskItemRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Subtask not found with id " + id);
-        }
-        subtaskItemRepository.deleteById(id);
+    private SubtaskResponse mapToSubtaskResponse(Subtask subtaskEntity) {
+        return SubtaskResponse.builder()
+                .id(subtaskEntity.getId())
+                .title(subtaskEntity.getTitle())
+                .completed(subtaskEntity.isCompleted())
+                .todoId(subtaskEntity.getTodo().getId())
+                .createdAt(subtaskEntity.getCreatedAt())
+                .updatedAt(subtaskEntity.getUpdatedAt())
+                .build();
     }
 }
-

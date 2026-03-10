@@ -1,0 +1,21 @@
+services:
+  backend:
+    build: ./backend/revado
+    ports:
+      - "${BACKEND_PORT:-8085}:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:sqlite:/app/data/revado.db
+    volumes:
+      - backend-data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend/revado-client
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend-data:

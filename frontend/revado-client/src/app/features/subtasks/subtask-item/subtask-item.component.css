@@ -1,0 +1,115 @@
+.subtask-row {
+  padding: 0.375rem 0;
+}
+
+.subtask-row.completed {
+  opacity: 0.65;
+}
+
+.subtask-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+.subtask-title {
+  flex: 1;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: default;
+  word-break: break-word;
+}
+
+.subtask-title.done {
+  text-decoration: line-through;
+  color: #adb5bd;
+}
+
+.subtask-actions {
+  display: flex;
+  gap: 0.125rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.subtask-display:hover .subtask-actions {
+  opacity: 1;
+}
+
+.btn-sm-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: #adb5bd;
+  padding: 0.25rem 0.375rem;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.btn-sm-icon:hover {
+  background: #f0f0f0;
+  color: #495057;
+}
+
+.btn-sm-icon.btn-danger:hover {
+  background: #fce4ec;
+  color: #dc3545;
+}
+
+.subtask-edit {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.edit-input {
+  flex: 1;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  box-sizing: border-box;
+}
+
+.edit-input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(168, 50, 50, 0.15);
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-save {
+  background: #343a40;
+  color: white;
+}
+
+.btn-save:hover {
+  background: #23272b;
+}
+
+.btn-cancel {
+  background: #f8f9fa;
+  color: var(--text-muted);
+  border: 1px solid #ced4da;
+}
+
+.btn-cancel:hover {
+  background: #e9ecef;
+}

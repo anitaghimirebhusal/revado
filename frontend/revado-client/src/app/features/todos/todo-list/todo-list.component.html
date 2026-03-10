@@ -1,0 +1,60 @@
+<h1 class="page-title">Welcome to Todo list page</h1>
+
+<div class="todo-page">
+  <div class="toolbar">
+    <div class="toolbar-info">
+      Label, Description and Status:
+    </div>
+    <div class="toolbar-actions">
+      <div class="filter-bar">
+        <button
+          class="filter-btn"
+          [class.active]="activeFilter() === 'all'"
+          (click)="setFilter('all')"
+        >All</button>
+        <button
+          class="filter-btn"
+          [class.active]="activeFilter() === 'active'"
+          (click)="setFilter('active')"
+        >Active</button>
+        <button
+          class="filter-btn"
+          [class.active]="activeFilter() === 'completed'"
+          (click)="setFilter('completed')"
+        >Completed</button>
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Loading todos...</div>
+  } @else if (todos().length === 0) {
+    <div class="empty-state">
+      <p>No todos yet. Create one to get started!</p>
+    </div>
+  } @else {
+    <div class="todo-list">
+      @for (todo of todos(); track todo.id) {
+        <app-todo-item
+          [todo]="todo"
+          (toggleComplete)="onToggleComplete($event)"
+          (deleteTodo)="onDeleteTodo($event)"
+          (updateTodo)="onUpdateTodo($event)"
+          (todosChanged)="loadTodos()"
+        />
+      }
+    </div>
+  }
+
+  <div class="bottom-bar">
+    <span class="todo-count">{{ todos().length }} item{{ todos().length === 1 ? '' : 's' }}</span>
+    <button class="btn-add-todo" (click)="showForm.set(true)">Add Todo</button>
+  </div>
+</div>
+
+@if (showForm()) {
+  <app-todo-form
+    (save)="onCreateTodo($event)"
+    (cancel)="showForm.set(false)"
+  />
+}

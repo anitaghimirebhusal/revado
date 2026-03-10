@@ -1,0 +1,32 @@
+<div class="subtask-row" [class.completed]="subtask().completed">
+  @if (editing()) {
+    <div class="subtask-edit">
+      <input
+        type="text"
+        class="edit-input"
+        [ngModel]="editTitle()"
+        (ngModelChange)="onEditTitleChange($event)"
+        (keydown.enter)="saveEdit()"
+        (keydown.escape)="cancelEdit()"
+      />
+      <button class="btn-sm btn-save" (click)="saveEdit()">Save</button>
+      <button class="btn-sm btn-cancel" (click)="cancelEdit()">Cancel</button>
+    </div>
+  } @else {
+    <div class="subtask-display">
+      <input
+        type="checkbox"
+        [checked]="subtask().completed"
+        (change)="onToggle()"
+        class="checkbox"
+      />
+      <span class="subtask-title" [class.done]="subtask().completed" (dblclick)="startEdit()">
+        {{ subtask().title }}
+      </span>
+      <div class="subtask-actions">
+        <button class="btn-sm-icon" title="Edit" (click)="startEdit()">&#9998;</button>
+        <button class="btn-sm-icon btn-danger" title="Delete" (click)="onDelete()">&#10005;</button>
+      </div>
+    </div>
+  }
+</div>

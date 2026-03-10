@@ -1,0 +1,51 @@
+<div class="todo-row" [class.completed]="todo().completed">
+  <div class="row-col col-title">{{ todo().title }}</div>
+  <div class="row-col col-desc">
+    {{ todo().description || '—' }}
+  </div>
+  <div class="row-col col-date">{{ todo().createdAt | date:'MMM d, y' }}</div>
+  <div class="row-col col-status">
+    @if (todo().completed) {
+      <span class="status-icon status-done" [title]="'Completed'">&#10004;&#10004;</span>
+    } @else {
+      <span class="status-icon status-active" title="Active">&#8987;</span>
+    }
+  </div>
+  <div class="row-col col-meta">
+    @if (todo().subtasks && todo().subtasks.length > 0) {
+      <span class="meta-subtasks">
+        {{ todo().subtasks.length }} subtask{{ todo().subtasks.length === 1 ? '' : 's' }}
+      </span>
+    }
+  </div>
+  <div class="row-col col-actions">
+    @if (!todo().completed) {
+      <button class="action-btn" title="Complete" (click)="onToggle()">&#10003;</button>
+    } @else {
+      <button class="action-btn" title="Undo Complete" (click)="onToggle()">&#8634;</button>
+    }
+    <button class="action-btn" title="Edit" (click)="onEdit()">&#9998;</button>
+    <button class="action-btn action-delete" title="Delete" (click)="onDelete()">&#10005;</button>
+    <button class="action-btn action-expand" title="Subtasks" (click)="toggleExpand()">
+      {{ expanded() ? '▲' : '▼' }}
+    </button>
+  </div>
+</div>
+
+@if (expanded()) {
+  <div class="subtask-section">
+    <app-subtask-list
+      [todoId]="todo().id"
+      [subtasks]="todo().subtasks"
+      (subtasksChanged)="onSubtasksChanged()"
+    />
+  </div>
+}
+
+@if (editing()) {
+  <app-todo-form
+    [todo]="todo()"
+    (save)="onSaveEdit($event)"
+    (cancel)="onCancelEdit()"
+  />
+}

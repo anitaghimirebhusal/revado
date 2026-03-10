@@ -1,0 +1,42 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --brand-primary: #a83232;
+  --brand-primary-dark: #8a2828;
+  --brand-completed: #7baf7b;
+  --brand-completed-dark: #015801;
+  --surface-color: #ffffff;
+  --surface-muted: #f8f9fa;
+  --text-main: #20364b;
+  --text-muted: #6c757d;
+  --border-subtle: #dee2e6;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8f9fa;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+}

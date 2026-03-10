@@ -1,66 +1,78 @@
 package com.revature.revado.controller;
 
-import com.revature.revado.dto.SubtaskCreateRequest;
-import com.revature.revado.dto.SubtaskUpdateRequest;
-import com.revature.revado.entity.SubtaskItem;
+import com.revature.revado.dto.request.SubtaskRequest;
+import com.revature.revado.dto.response.ApiResponse;
+import com.revature.revado.dto.response.SubtaskResponse;
+import com.revature.revado.security.UserPrincipal;
 import com.revature.revado.service.SubtaskService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/v1/todos/{todoId}/subtasks")
+@RequiredArgsConstructor
 public class SubtaskController {
 
-    private final SubtaskService subtaskService;
+    private final SubtaskService subtaskManagementService;
 
-    public SubtaskController(SubtaskService subtaskService) {
-        this.subtaskService = subtaskService;
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<SubtaskResponse>>> getSubtasks(
+            @PathVariable Long todoId,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        List<SubtaskResponse> subtaskResponses = subtaskManagementService.getSubtasksByTodoId(todoId, currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success(subtaskResponses));
     }
 
-    @PostMapping("/todos/{todoId}/subtasks")
-    public ResponseEntity<SubtaskItem> createSubtask(@PathVariable Long todoId,
-                                                     @RequestBody SubtaskCreateRequest request) {
-        SubtaskItem created = subtaskService.createSubtask(todoId, request.title());
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    @GetMapping("/{subtaskId}")
+    public ResponseEntity<ApiResponse<SubtaskResponse>> getSubtask(
+            @PathVariable Long todoId,
+            @PathVariable Long subtaskId,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        SubtaskResponse subtaskDetails = subtaskManagementService.getSubtaskById(todoId, subtaskId, currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success(subtaskDetails));
     }
 
-    @GetMapping("/todos/{todoId}/subtasks")
-    public ResponseEntity<List<SubtaskItem>> getSubtasksForTodo(@PathVariable Long todoId) {
-        return ResponseEntity.ok(subtaskService.getSubtasksForTodo(todoId));
+    @PostMapping
+    public ResponseEntity<ApiResponse<SubtaskResponse>> createSubtask(
+            @PathVariable Long todoId,
+            @Valid @RequestBody SubtaskRequest request,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        SubtaskResponse createdSubtask = subtaskManagementService.createSubtask(todoId, request, currentUser.getId());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Subtask created successfully", createdSubtask));
     }
 
-    @GetMapping("/subtasks/{id}")
-    public ResponseEntity<SubtaskItem> getSubtaskById(@PathVariable Long id) {
-        return ResponseEntity.ok(subtaskService.getSubtaskById(id));
+    @PutMapping("/{subtaskId}")
+    public ResponseEntity<ApiResponse<SubtaskResponse>> updateSubtask(
+            @PathVariable Long todoId,
+            @PathVariable Long subtaskId,
+            @Valid @RequestBody SubtaskRequest request,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        SubtaskResponse updatedSubtask = subtaskManagementService.updateSubtask(todoId, subtaskId, request, currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success("Subtask updated successfully", updatedSubtask));
     }
 
-    @PutMapping("/subtasks/{id}")
-    public ResponseEntity<SubtaskItem> updateSubtask(@PathVariable Long id,
-                                                     @RequestBody SubtaskUpdateRequest request) {
-        SubtaskItem updated = subtaskService.updateSubtask(id, request.title(), request.completed());
-        return ResponseEntity.ok(updated);
+    @PatchMapping("/{subtaskId}/toggle")
+    public ResponseEntity<ApiResponse<SubtaskResponse>> toggleSubtaskComplete(
+            @PathVariable Long todoId,
+            @PathVariable Long subtaskId,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        SubtaskResponse toggledSubtask = subtaskManagementService.toggleSubtaskComplete(todoId, subtaskId, currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success("Subtask status toggled", toggledSubtask));
     }
 
-    @PatchMapping("/subtasks/{id}/complete")
-    public ResponseEntity<SubtaskItem> markSubtaskComplete(@PathVariable Long id) {
-        SubtaskItem updated = subtaskService.setSubtaskCompletion(id, true);
-        return ResponseEntity.ok(updated);
-    }
-
-    @PatchMapping("/subtasks/{id}/incomplete")
-    public ResponseEntity<SubtaskItem> markSubtaskIncomplete(@PathVariable Long id) {
-        SubtaskItem updated = subtaskService.setSubtaskCompletion(id, false);
-        return ResponseEntity.ok(updated);
-    }
-
-    @DeleteMapping("/subtasks/{id}")
-    public ResponseEntity<Void> deleteSubtask(@PathVariable Long id) {
-        subtaskService.deleteSubtask(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{subtaskId}")
+    public ResponseEntity<ApiResponse<Void>> deleteSubtask(
+            @PathVariable Long todoId,
+            @PathVariable Long subtaskId,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        subtaskManagementService.deleteSubtask(todoId, subtaskId, currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success("Subtask deleted successfully", null));
     }
 }
-

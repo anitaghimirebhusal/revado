@@ -1,0 +1,15 @@
+<nav class="navbar">
+  <a routerLink="/" class="brand">RevaDo</a>
+  <div class="nav-right">
+    @if (authService.isLoggedIn()) {
+      <span class="greeting">{{ authService.user()?.username }}</span>
+      <button class="btn-logout" (click)="authService.logout()">Logout</button>
+    } @else {
+      <a routerLink="/login" class="nav-link">Sign In</a>
+      <a routerLink="/register" class="nav-link nav-link-primary">Register</a>
+    }
+  </div>
+</nav>
+<main>
+  <router-outlet />
+</main>
